@@ -44,9 +44,8 @@ public class AddEditShoppingListActivity extends AppCompatActivity {
     private EditText editTextListName;
     private TextView textViewDate;
     private RecyclerView recyclerView;
-    private ImageView imageViewAddProduct;
-    private boolean isShowingDialog = false;
     private ProductViewModel productViewModel;
+    private boolean isShowingDialog = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +72,6 @@ public class AddEditShoppingListActivity extends AppCompatActivity {
         editTextListName = findViewById(R.id.editText_nameList);
         textViewDate = findViewById(R.id.textView_date);
         recyclerView = findViewById(R.id.recycleView_product);
-        imageViewAddProduct = findViewById(R.id.imageView_addProduct);
     }
 
     private void recycleViewService(ProductAdapter adapter) {
@@ -115,6 +113,7 @@ public class AddEditShoppingListActivity extends AppCompatActivity {
 
         DatePickerDialog dialog = new DatePickerDialog(
                 AddEditShoppingListActivity.this, dateSetListener, year, month, day);
+        dialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
         dialog.show();
         isShowingDialog = true;
     }
@@ -180,6 +179,7 @@ public class AddEditShoppingListActivity extends AppCompatActivity {
     }
 
     private void setOnClickListenerAddProduct(final Intent intent) {
+        ImageView imageViewAddProduct = findViewById(R.id.imageView_addProduct);
         imageViewAddProduct.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

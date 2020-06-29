@@ -34,22 +34,21 @@ public class ShoppingListActivity extends AppCompatActivity {
     public static final int EDIT_LIST_REQUEST = 2;
 
     private ShoppingListViewModel shoppingListViewModel;
-    private ProductViewModel productViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_list);
+        recycleVieService();
+        shoppingListViewModel = new ViewModelProvider(this).get(ShoppingListViewModel.class);
+    }
 
+    private void recycleVieService(){
         RecyclerView recyclerView = findViewById(R.id.recycleView_shoppingList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
         final ShoppingListAdapter adapter = new ShoppingListAdapter();
         recyclerView.setAdapter(adapter);
-
-        shoppingListViewModel = new ViewModelProvider(this).get(ShoppingListViewModel.class);
-        productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
-
         selectList(adapter, recyclerView);
     }
 
@@ -143,9 +142,9 @@ public class ShoppingListActivity extends AppCompatActivity {
             @Override
             public void onItemClick(ShoppingList shoppingList) {
                 Intent intent = new Intent(ShoppingListActivity.this, ViewArchivedShoppingListActivity.class);
-                intent.putExtra(ViewArchivedShoppingListActivity.EXTRA_ID, shoppingList.getId());
-                intent.putExtra(ViewArchivedShoppingListActivity.EXTRA_NAME, shoppingList.getName());
-                intent.putExtra(ViewArchivedShoppingListActivity.EXTRA_DATE, shoppingList.getDate());
+                intent.putExtra(ViewArchivedShoppingListActivity.LIST_ID, shoppingList.getId());
+                intent.putExtra(ViewArchivedShoppingListActivity.LIST_NAME, shoppingList.getName());
+                intent.putExtra(ViewArchivedShoppingListActivity.LIST_DATE, shoppingList.getDate());
 
                 startActivityForResult(intent, EDIT_LIST_REQUEST);
             }
@@ -161,9 +160,9 @@ public class ShoppingListActivity extends AppCompatActivity {
             String date = data.getStringExtra(AddEditShoppingListActivity.DATE);
 
             ShoppingList shoppingList = new ShoppingList(name, date);
-            Log.e("LISTA", "Id listy: " + shoppingList.getId()); //TODO usunąć
-            shoppingListViewModel.insertShoppingList(shoppingList);
-            Log.e("LISTA", "Id listy: " + shoppingList.getId()); //TODO usunąć
+            long id = shoppingListViewModel.insertShoppingList(shoppingList);
+
+            Log.e("LISTA", "Id listy: " + id); //TODO usunąć
 
             updateProduct(shoppingList.getId());
             Toast.makeText(this, "Shopping list saved", Toast.LENGTH_SHORT).show();
@@ -187,6 +186,7 @@ public class ShoppingListActivity extends AppCompatActivity {
     }
 
     private void updateProduct(int shoppingListId) {
+        ProductViewModel productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
         LiveData<List<Product>> productList = productViewModel
                 .getAllProduct(AddEditShoppingListActivity.NEW_SHOPPING_LIST_ID);
         if (productList.getValue() != null) {

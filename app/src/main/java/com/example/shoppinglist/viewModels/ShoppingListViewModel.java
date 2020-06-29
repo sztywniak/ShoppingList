@@ -10,6 +10,7 @@ import com.example.shoppinglist.models.ShoppingList;
 import com.example.shoppinglist.repositories.ShoppingListRepository;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class ShoppingListViewModel extends AndroidViewModel {
     private ShoppingListRepository repository;
@@ -23,8 +24,13 @@ public class ShoppingListViewModel extends AndroidViewModel {
         allArchivedShoppingList = repository.getAllArchivedShoppingList();
     }
 
-    public void insertShoppingList(ShoppingList shoppingList) {
-        repository.insertShoppingList(shoppingList);
+    public long insertShoppingList(ShoppingList shoppingList) {
+        try {
+            return repository.insertShoppingList(shoppingList);
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     public void updateShoppingLis(ShoppingList shoppingList) {

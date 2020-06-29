@@ -2,6 +2,7 @@ package com.example.shoppinglist.repositories;
 
 import android.app.Application;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 
@@ -10,12 +11,14 @@ import com.example.shoppinglist.database.ShoppingListDatabase;
 import com.example.shoppinglist.models.ShoppingList;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class ShoppingListRepository {
 
     private ShoppingListDao shoppingListDao;
     private LiveData<List<ShoppingList>> allArchivedShoppingList;
     private LiveData<List<ShoppingList>> allCurrentShoppingList;
+    private long id;
 
     public ShoppingListRepository(Application application) {
         ShoppingListDatabase database = ShoppingListDatabase.getInstance(application);
@@ -24,8 +27,18 @@ public class ShoppingListRepository {
         allArchivedShoppingList = shoppingListDao.getAllArchivedShoppingList();
     }
 
-    public void insertShoppingList(ShoppingList shoppingList) {
-        new InsertShoppingListAsyncTask(shoppingListDao).execute(shoppingList);
+    public long insertShoppingList(ShoppingList shoppingList) throws ExecutionException, InterruptedException {
+        new InsertShoppingListAsyncTask(shoppingListDao,
+                new InsertShoppingListAsyncTask.AsyncResponse() {
+                    @Override
+                    public void processFinish(long output) {
+                        id = output;
+                        Log.e("idi", id +"");
+                    }
+                }).execute(shoppingList).get();
+        //TODO poprawić
+        Log.e("ididid", id +"");
+        return id;
     }
 
     public void updateShoppingList(ShoppingList shoppingList) {
@@ -44,17 +57,28 @@ public class ShoppingListRepository {
         return allArchivedShoppingList;
     }
 
-    private static class InsertShoppingListAsyncTask extends AsyncTask<ShoppingList, Void, Void> {
+    private static class InsertShoppingListAsyncTask extends AsyncTask<ShoppingList, Void, Long> {
         private ShoppingListDao shoppingListDao;
+        public AsyncResponse delegate;
 
-        private InsertShoppingListAsyncTask(ShoppingListDao shoppingListDao) {
+        private InsertShoppingListAsyncTask(ShoppingListDao shoppingListDao, AsyncResponse delegate) {
             this.shoppingListDao = shoppingListDao;
+            this.delegate = delegate;
         }
 
         @Override
-        protected Void doInBackground(ShoppingList... shoppingLists) {
-            shoppingListDao.insertSoppingList(shoppingLists[0]);
-            return null;
+        protected Long doInBackground(ShoppingList... shoppingLists) {
+            return shoppingListDao.insertShoppingList(shoppingLists[0]);
+        }
+
+        @Override
+        protected void onPostExecute(Long aLong) {
+            super.onPostExecute(aLong);
+            delegate.processFinish(aLong);
+        }
+
+        public interface AsyncResponse {
+            void processFinish(long output);
         }
     }
 
