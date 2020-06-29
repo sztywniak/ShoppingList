@@ -31,8 +31,7 @@ public class ShoppingListAdapter extends ListAdapter<ShoppingList, ShoppingListA
         @Override
         public boolean areContentsTheSame(@NonNull ShoppingList oldItem, @NonNull ShoppingList newItem) {
             return oldItem.getName().equals(newItem.getName()) &&
-                    oldItem.getDate().equals(newItem.getDate()) &&
-                    oldItem.getProductList().equals(newItem.getProductList());
+                    oldItem.getDate().equals(newItem.getDate());
         }
     };
 
@@ -49,7 +48,6 @@ public class ShoppingListAdapter extends ListAdapter<ShoppingList, ShoppingListA
         ShoppingList currentList = getItem(position);
         holder.textViewName.setText(currentList.getName());
         holder.textViewDate.setText(currentList.getDate().substring(0, 10));
-        holder.textViewProduct.setText(currentList.getProductList());
     }
 
     public ShoppingList getShoppingListAt(int position) {
@@ -64,7 +62,8 @@ public class ShoppingListAdapter extends ListAdapter<ShoppingList, ShoppingListA
             super(itemView);
             textViewName = itemView.findViewById(R.id.textView_name);
             textViewDate = itemView.findViewById(R.id.textView_date);
-            textViewProduct = itemView.findViewById(R.id.textView_items);
+            //TODO ogarnąć
+            //textViewProduct = itemView.findViewById(R.id.textView_items);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

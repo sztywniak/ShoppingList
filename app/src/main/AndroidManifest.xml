@@ -9,7 +9,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.ViewArchivedShoppingListActivity"></activity>
+
+        <activity android:name=".activities.ViewArchivedShoppingListActivity" />
         <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,8 +22,11 @@
             android:name=".activities.ShoppingListActivity"
             android:parentActivityName=".activities.MainActivity" />
         <activity
-            android:name=".activities.AddEditShoppingList"
+            android:name=".activities.AddEditShoppingListActivity"
             android:parentActivityName=".activities.ShoppingListActivity" />
+        <activity
+            android:name=".activities.AddEditProductActivity"
+            android:parentActivityName=".activities.AddEditShoppingListActivity" />
     </application>
 
 </manifest>

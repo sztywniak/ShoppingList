@@ -3,6 +3,7 @@ package com.example.shoppinglist.activities;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -11,25 +12,29 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import com.example.shoppinglist.R;
 import com.example.shoppinglist.adapters.ShoppingListAdapter;
+import com.example.shoppinglist.models.Product;
 import com.example.shoppinglist.models.ShoppingList;
+import com.example.shoppinglist.viewModels.ProductViewModel;
 import com.example.shoppinglist.viewModels.ShoppingListViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
 public class ShoppingListActivity extends AppCompatActivity {
-    public static final String EXTRA_TYPE = ".EXTRA_TYPE";
+    public static final String TYPE = "type";
     public static final String CURRENT_SHOPPING_LIST = "current_shopping_list";
     public static final String ARCHIVED_SHOPPING_LIST = "archived_shopping_list";
     public static final int ADD_LIST_REQUEST = 1;
     public static final int EDIT_LIST_REQUEST = 2;
 
     private ShoppingListViewModel shoppingListViewModel;
+    private ProductViewModel productViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,12 +48,13 @@ public class ShoppingListActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         shoppingListViewModel = new ViewModelProvider(this).get(ShoppingListViewModel.class);
+        productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
 
-        String typeIntent = getIntent().getStringExtra(EXTRA_TYPE);
-        selectList(typeIntent, adapter, recyclerView);
+        selectList(adapter, recyclerView);
     }
 
-    private void selectList(String typeIntent, final ShoppingListAdapter adapter, RecyclerView recyclerView) {
+    private void selectList(final ShoppingListAdapter adapter, RecyclerView recyclerView) {
+        String typeIntent = getIntent().getStringExtra(TYPE);
         if (typeIntent != null)
             switch (typeIntent) {
                 case CURRENT_SHOPPING_LIST:
@@ -81,7 +87,7 @@ public class ShoppingListActivity extends AppCompatActivity {
         buttonAddShoppingList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(ShoppingListActivity.this, AddEditShoppingList.class);
+                Intent intent = new Intent(ShoppingListActivity.this, AddEditShoppingListActivity.class);
                 startActivityForResult(intent, ADD_LIST_REQUEST);
             }
         });
@@ -91,7 +97,9 @@ public class ShoppingListActivity extends AppCompatActivity {
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,
                 ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                  @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target) {
                 return false;
             }
 
@@ -109,11 +117,10 @@ public class ShoppingListActivity extends AppCompatActivity {
         adapter.setOnItemClickListener(new ShoppingListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(ShoppingList shoppingList) {
-                Intent intent = new Intent(ShoppingListActivity.this, AddEditShoppingList.class);
-                intent.putExtra(AddEditShoppingList.EXTRA_ID, shoppingList.getId());
-                intent.putExtra(AddEditShoppingList.EXTRA_NAME, shoppingList.getName());
-                intent.putExtra(AddEditShoppingList.EXTRA_DATE, shoppingList.getDate());
-                intent.putExtra(AddEditShoppingList.EXTRA_PRODUCT_LIST, shoppingList.getProductList());
+                Intent intent = new Intent(ShoppingListActivity.this, AddEditShoppingListActivity.class);
+                intent.putExtra(AddEditShoppingListActivity.ID, shoppingList.getId());
+                intent.putExtra(AddEditShoppingListActivity.SHOPPING_LIST_NAME, shoppingList.getName());
+                intent.putExtra(AddEditShoppingListActivity.DATE, shoppingList.getDate());
 
                 startActivityForResult(intent, EDIT_LIST_REQUEST);
             }
@@ -139,7 +146,6 @@ public class ShoppingListActivity extends AppCompatActivity {
                 intent.putExtra(ViewArchivedShoppingListActivity.EXTRA_ID, shoppingList.getId());
                 intent.putExtra(ViewArchivedShoppingListActivity.EXTRA_NAME, shoppingList.getName());
                 intent.putExtra(ViewArchivedShoppingListActivity.EXTRA_DATE, shoppingList.getDate());
-                intent.putExtra(ViewArchivedShoppingListActivity.EXTRA_PRODUCT_LIST, shoppingList.getProductList());
 
                 startActivityForResult(intent, EDIT_LIST_REQUEST);
             }
@@ -150,32 +156,45 @@ public class ShoppingListActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == ADD_LIST_REQUEST && resultCode == RESULT_OK) {
-            String name = data.getStringExtra(AddEditShoppingList.EXTRA_NAME);
-            String date = data.getStringExtra(AddEditShoppingList.EXTRA_DATE);
-            String product = data.getStringExtra(AddEditShoppingList.EXTRA_PRODUCT_LIST);
+        if (requestCode == ADD_LIST_REQUEST && resultCode == RESULT_OK && data != null) {
+            String name = data.getStringExtra(AddEditShoppingListActivity.SHOPPING_LIST_NAME);
+            String date = data.getStringExtra(AddEditShoppingListActivity.DATE);
 
-            ShoppingList shoppingList = new ShoppingList(name, date, product);
+            ShoppingList shoppingList = new ShoppingList(name, date);
+            Log.e("LISTA", "Id listy: " + shoppingList.getId()); //TODO usunąć
             shoppingListViewModel.insertShoppingList(shoppingList);
+            Log.e("LISTA", "Id listy: " + shoppingList.getId()); //TODO usunąć
 
+            updateProduct(shoppingList.getId());
             Toast.makeText(this, "Shopping list saved", Toast.LENGTH_SHORT).show();
-        } else if (requestCode == EDIT_LIST_REQUEST && resultCode == RESULT_OK) {
-            int id = data.getIntExtra(AddEditShoppingList.EXTRA_ID, -1);
+        } else if (requestCode == EDIT_LIST_REQUEST && resultCode == RESULT_OK && data != null) {
+            int id = data.getIntExtra(AddEditShoppingListActivity.ID, -1);
 
             if (id == -1) {
                 Toast.makeText(this, "Shopping list can't updated", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            String name = data.getStringExtra(AddEditShoppingList.EXTRA_NAME);
-            String date = data.getStringExtra(AddEditShoppingList.EXTRA_DATE);
-            String product = data.getStringExtra(AddEditShoppingList.EXTRA_PRODUCT_LIST);
+            String name = data.getStringExtra(AddEditShoppingListActivity.SHOPPING_LIST_NAME);
+            String date = data.getStringExtra(AddEditShoppingListActivity.DATE);
 
-            ShoppingList shoppingList = new ShoppingList(name, date, product);
+            ShoppingList shoppingList = new ShoppingList(name, date);
             shoppingList.setId(id);
             shoppingListViewModel.updateShoppingLis(shoppingList);
 
             Toast.makeText(this, "Shopping list updated", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updateProduct(int shoppingListId) {
+        LiveData<List<Product>> productList = productViewModel
+                .getAllProduct(AddEditShoppingListActivity.NEW_SHOPPING_LIST_ID);
+        if (productList.getValue() != null) {
+            Log.e("productList", productList.getValue().size() + "");
+            for (int i = 0; i < productList.getValue().size(); i++) {
+                productList.getValue().get(i).setShoppingListId(shoppingListId);
+                productViewModel.updateProduct(productList.getValue().get(i));
+            }
         }
     }
 }

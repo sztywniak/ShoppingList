@@ -4,8 +4,6 @@ import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-import java.util.List;
-
 @Entity(tableName = "SHOPPING_LIST")
 public class ShoppingList {
 
@@ -19,13 +17,9 @@ public class ShoppingList {
     @ColumnInfo(name = "DATE")
     private String date;
 
-    @ColumnInfo(name = "PRODUCT_LIST")
-    private String productList;
-
-    public ShoppingList(String name, String date, String productList) {
+    public ShoppingList(String name, String date) {
         this.name = name;
         this.date = date;
-        this.productList = productList;
     }
 
     public int getId() {
@@ -50,13 +44,5 @@ public class ShoppingList {
 
     public void setDate(String date) {
         this.date = date;
-    }
-
-    public String getProductList() {
-        return productList;
-    }
-
-    public void setProductList(String productList) {
-        this.productList = productList;
     }
 }

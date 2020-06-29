@@ -5,4 +5,6 @@
     <string name="list_name">List name</string>
     <string name="products">Products</string>
     <string name="product_name">Product name</string>
+    <string name="number">Number</string>
+    <string name="add_product">Add product button</string>
 </resources>

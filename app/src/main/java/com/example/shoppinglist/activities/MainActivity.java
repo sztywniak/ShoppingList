@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, ShoppingListActivity.class);
-                intent.putExtra(ShoppingListActivity.EXTRA_TYPE,
+                intent.putExtra(ShoppingListActivity.TYPE,
                         ShoppingListActivity.CURRENT_SHOPPING_LIST);
 
                 startActivityForResult(intent, CURRENT_SHOPPING_LIST_REQUEST);
@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, ShoppingListActivity.class);
-                intent.putExtra(ShoppingListActivity.EXTRA_TYPE,
+                intent.putExtra(ShoppingListActivity.TYPE,
                         ShoppingListActivity.ARCHIVED_SHOPPING_LIST);
 
                 startActivityForResult(intent, ARCHIVED_SHOPPING_LIST_REQUEST);

@@ -25,33 +25,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+        android:text="@string/products"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
-    <!--    <RelativeLayout-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:layout_marginTop="8dp">-->
-
-    <!--        <TextView-->
-    <!--            android:id="@+id/textView_product"-->
-    <!--            android:layout_width="match_parent"-->
-    <!--            android:layout_height="wrap_content"-->
-    <!--            android:text="@string/products"-->
-    <!--            android:textAppearance="@style/TextAppearance.AppCompat.Medium" />-->
-
-    <!--        <ImageView-->
-    <!--            android:layout_width="wrap_content"-->
-    <!--            android:layout_height="wrap_content"-->
-    <!--            android:layout_alignParentEnd="true"-->
-    <!--            android:src="@drawable/ic_add_grey" />-->
-
-    <!--    </RelativeLayout>-->
-
-    <!--    <androidx.recyclerview.widget.RecyclerView-->
-    <!--        android:id="@+id/recycleView_product"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="match_parent"-->
-    <!--        android:layout_marginTop="8dp"-->
-    <!--        tools:listitem="@layout/product_item" />-->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycleView_product"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp"
+        tools:listitem="@layout/product_item" />
 
 </LinearLayout>

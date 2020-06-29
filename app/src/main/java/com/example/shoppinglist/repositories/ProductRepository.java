@@ -14,12 +14,10 @@ import java.util.List;
 public class ProductRepository {
 
     private ProductDao productDao;
-    private LiveData<List<Product>> allProduct;
 
-    public ProductRepository(Application application, int shoppingListId) {
+    public ProductRepository(Application application) {
         ShoppingListDatabase database = ShoppingListDatabase.getInstance(application);
         productDao = database.productDao();
-        allProduct = productDao.getAllProduct(shoppingListId);
     }
 
     public void insertProduct(Product product) {
@@ -34,8 +32,8 @@ public class ProductRepository {
         new DeleteProductAsyncTask(productDao).execute(product);
     }
 
-    public LiveData<List<Product>> getAllProduct() {
-        return allProduct;
+    public LiveData<List<Product>> getAllProduct(int shoppingListId) {
+        return productDao.getAllProduct(shoppingListId);
     }
 
     private static class InsertProductAsyncTask extends AsyncTask<Product, Void, Void> {
