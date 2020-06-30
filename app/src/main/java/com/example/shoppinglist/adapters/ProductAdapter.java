@@ -49,7 +49,7 @@ public class ProductAdapter extends ListAdapter<Product, ProductAdapter.ProductH
         holder.textViewNumber.setText(String.valueOf(currentProduct.getNumber()));
     }
 
-    public Product getProductAt(int position){
+    public Product getProductAt(int position) {
         return getItem(position);
     }
 

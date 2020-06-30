@@ -51,7 +51,6 @@ public class AddEditProductActivity extends AppCompatActivity {
     private void savedInstanceStateService(Bundle savedInstanceState) {
         editTextName.setText(savedInstanceState.getString(PRODUCT_NAME));
         editTextNumber.setText(savedInstanceState.getString(PRODUCT_NUMBER));
-        //TODO sprawdzić czy przy obrocie ekranu nie utraciło shoppingId
     }
 
     @Override
@@ -63,13 +62,11 @@ public class AddEditProductActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.save:
-                saveProduct();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.save) {
+            saveProduct();
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
 
     private void saveProduct() {

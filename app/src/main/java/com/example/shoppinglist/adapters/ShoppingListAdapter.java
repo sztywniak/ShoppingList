@@ -56,14 +56,12 @@ public class ShoppingListAdapter extends ListAdapter<ShoppingList, ShoppingListA
 
     public class ShoppingListHolder extends RecyclerView.ViewHolder {
 
-        private TextView textViewName, textViewDate, textViewProduct;
+        private TextView textViewName, textViewDate;
 
         public ShoppingListHolder(@NonNull View itemView) {
             super(itemView);
             textViewName = itemView.findViewById(R.id.textView_name);
             textViewDate = itemView.findViewById(R.id.textView_date);
-            //TODO ogarnąć
-            //textViewProduct = itemView.findViewById(R.id.textView_items);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

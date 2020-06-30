@@ -15,10 +15,11 @@ public abstract class ShoppingListDatabase extends RoomDatabase {
     private static ShoppingListDatabase instance;
 
     public abstract ProductDao productDao();
+
     public abstract ShoppingListDao shoppingListDao();
 
-    public static synchronized ShoppingListDatabase getInstance(Context context){
-        if(instance == null){
+    public static synchronized ShoppingListDatabase getInstance(Context context) {
+        if (instance == null) {
             instance = Room.databaseBuilder(context.getApplicationContext(),
                     ShoppingListDatabase.class, "SHOPPING_LIST_DATABASE")
                     .fallbackToDestructiveMigration()

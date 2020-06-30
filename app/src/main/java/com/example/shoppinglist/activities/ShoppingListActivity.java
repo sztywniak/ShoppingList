@@ -43,7 +43,7 @@ public class ShoppingListActivity extends AppCompatActivity {
         shoppingListViewModel = new ViewModelProvider(this).get(ShoppingListViewModel.class);
     }
 
-    private void recycleVieService(){
+    private void recycleVieService() {
         RecyclerView recyclerView = findViewById(R.id.recycleView_shoppingList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
@@ -162,9 +162,7 @@ public class ShoppingListActivity extends AppCompatActivity {
             ShoppingList shoppingList = new ShoppingList(name, date);
             long id = shoppingListViewModel.insertShoppingList(shoppingList);
 
-            Log.e("LISTA", "Id listy: " + id); //TODO usunąć
-
-            updateProduct(shoppingList.getId());
+            updateProduct(id);
             Toast.makeText(this, "Shopping list saved", Toast.LENGTH_SHORT).show();
         } else if (requestCode == EDIT_LIST_REQUEST && resultCode == RESULT_OK && data != null) {
             int id = data.getIntExtra(AddEditShoppingListActivity.ID, -1);
@@ -185,14 +183,14 @@ public class ShoppingListActivity extends AppCompatActivity {
         }
     }
 
-    private void updateProduct(int shoppingListId) {
+    private void updateProduct(Long shoppingListId) {
         ProductViewModel productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
         LiveData<List<Product>> productList = productViewModel
                 .getAllProduct(AddEditShoppingListActivity.NEW_SHOPPING_LIST_ID);
         if (productList.getValue() != null) {
             Log.e("productList", productList.getValue().size() + "");
             for (int i = 0; i < productList.getValue().size(); i++) {
-                productList.getValue().get(i).setShoppingListId(shoppingListId);
+                productList.getValue().get(i).setShoppingListId(shoppingListId.intValue());
                 productViewModel.updateProduct(productList.getValue().get(i));
             }
         }

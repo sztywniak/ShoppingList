@@ -1,5 +1,6 @@
 package com.example.shoppinglist.activities;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -42,7 +43,7 @@ public class ViewArchivedShoppingListActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
-    private void intentService(Intent intent, ProductAdapter adapter) {
+    private void intentService(@NonNull Intent intent, ProductAdapter adapter) {
         TextView textViewName = findViewById(R.id.textView_name);
         TextView textViewDate = findViewById(R.id.textView_date);
 
