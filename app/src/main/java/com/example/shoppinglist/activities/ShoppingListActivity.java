@@ -39,8 +39,8 @@ public class ShoppingListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_list);
-        recycleVieService();
         shoppingListViewModel = new ViewModelProvider(this).get(ShoppingListViewModel.class);
+        recycleVieService();
     }
 
     private void recycleVieService() {
