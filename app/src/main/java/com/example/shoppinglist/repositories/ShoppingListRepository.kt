@@ -36,9 +36,9 @@ class ShoppingListRepository(application: Application?) {
     }
 
     fun deleteEmptyShoppingList(){
-        CoroutineScope(IO).launch { {
+        CoroutineScope(IO).launch {
             deleteEmptyShoppingListOnBg(shoppingListDao)
-        } }
+        }
     }
 
     fun getAllCurrentShoppingList(): LiveData<List<ShoppingList>> {

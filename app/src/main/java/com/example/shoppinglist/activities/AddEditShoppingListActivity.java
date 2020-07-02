@@ -47,8 +47,6 @@ public class AddEditShoppingListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_edit_shopping_list);
-        if (getSupportActionBar() != null)
-            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_close);
         attributedWidget();
         productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
         final ProductAdapter adapter = new ProductAdapter();

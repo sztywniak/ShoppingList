@@ -39,7 +39,7 @@ public class ShoppingListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_list);
         shoppingListViewModel = new ViewModelProvider(this).get(ShoppingListViewModel.class);
-        //shoppingListViewModel.deleteEmptyShoppingList();
+        shoppingListViewModel.deleteEmptyShoppingList();
         recycleVieService();
     }
 
@@ -85,6 +85,7 @@ public class ShoppingListActivity extends AppCompatActivity {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         ShoppingList shoppingList = new ShoppingList("", sdf.format(new Date()));
         shoppingListViewModel.getInsertionId().observe(this, aLong -> {
+            Log.e("id tu", aLong+"");
             shoppingList.setId(aLong.intValue());
             String json = new Gson().toJson(shoppingList);
             Intent intent = new Intent(ShoppingListActivity.this, AddEditShoppingListActivity.class);
