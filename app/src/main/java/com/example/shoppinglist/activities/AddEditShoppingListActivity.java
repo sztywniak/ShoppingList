@@ -3,7 +3,6 @@ package com.example.shoppinglist.activities;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -36,8 +35,7 @@ public class AddEditShoppingListActivity extends AppCompatActivity {
     final String SHOPPING_LIST_NAME = "SHOPPING_LIST_NAME";
     final String SHOPPING_DATE = "SHOPPING_DATE";
 
-
-    private ProductViewModel productViewModel; //TODO da się poprawić?
+    private ProductViewModel productViewModel;
     private boolean isShowingDialog = false;
     private EditText editTextShoppingListName;
     private TextView textViewShoppingDate;
@@ -216,7 +214,6 @@ public class AddEditShoppingListActivity extends AppCompatActivity {
     }
 
     private Intent getIntentData(ShoppingList shoppingList) {
-        Log.e("2 lista", "id " + shoppingList.getId() +" name "+ shoppingList.getName() + " date " + shoppingList.getDate());
         shoppingList.setId(getShoppingList().getId());
         String json = new Gson().toJson(shoppingList);
         Intent data = new Intent();

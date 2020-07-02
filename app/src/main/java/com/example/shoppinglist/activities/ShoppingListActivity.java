@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -63,8 +62,6 @@ public class ShoppingListActivity extends AppCompatActivity {
                     serviceArchivedShoppingList(adapter);
                     break;
             }
-        else //TODO tu jest lipa
-            Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
     }
 
     public void serviceCurrentShoppingList(final ShoppingListAdapter adapter, RecyclerView recyclerView) {
@@ -85,12 +82,14 @@ public class ShoppingListActivity extends AppCompatActivity {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         ShoppingList shoppingList = new ShoppingList("", sdf.format(new Date()));
         shoppingListViewModel.getInsertionId().observe(this, aLong -> {
-            Log.e("id tu", aLong+"");
-            shoppingList.setId(aLong.intValue());
-            String json = new Gson().toJson(shoppingList);
-            Intent intent = new Intent(ShoppingListActivity.this, AddEditShoppingListActivity.class);
-            intent.putExtra(AddEditShoppingListActivity.SHOPPING_LIST, json);
-            startActivityForResult(intent, ADD_LIST_REQUEST);
+            if (aLong != null) {
+                shoppingList.setId(aLong.intValue());
+                String json = new Gson().toJson(shoppingList);
+                Intent intent = new Intent(ShoppingListActivity.this, AddEditShoppingListActivity.class);
+                intent.putExtra(AddEditShoppingListActivity.SHOPPING_LIST, json);
+                startActivityForResult(intent, ADD_LIST_REQUEST);
+                shoppingListViewModel.getInsertionId().postValue(null);
+            }
         });
         shoppingListViewModel.insertShoppingList(shoppingList);
     }
@@ -155,7 +154,6 @@ public class ShoppingListActivity extends AppCompatActivity {
     private void getDataAndUpdateShoppingList(@NonNull Intent data) {
         String json = data.getStringExtra(AddEditShoppingListActivity.SHOPPING_LIST);
         ShoppingList shoppingList = new Gson().fromJson(json, ShoppingList.class);
-        Log.e("lista", "id " + shoppingList.getId() +" name "+ shoppingList.getName() + " date " + shoppingList.getDate());
         shoppingListViewModel.updateShoppingLis(shoppingList);
     }
 }
