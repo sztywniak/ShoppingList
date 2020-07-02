@@ -26,6 +26,10 @@ import com.example.shoppinglist.models.ShoppingList;
 import com.example.shoppinglist.viewModels.ProductViewModel;
 import com.google.gson.Gson;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class AddEditShoppingListActivity extends AppCompatActivity {
     public static final String SHOPPING_LIST = "SHOPPING_LIST";
     public static final String IS_SHOWING_DIALOG = "IS_SHOWING_DIALOG";
@@ -50,11 +54,15 @@ public class AddEditShoppingListActivity extends AppCompatActivity {
         final ProductAdapter adapter = new ProductAdapter();
         recycleViewService(adapter);
         ShoppingList shoppingList = getShoppingList();
-        setValueOnView(shoppingList, adapter);
-        setOnClickListenerDate();
-        setOnClickListenerAddProduct(shoppingList.getId());
-        if (savedInstanceState != null)
-            savedInstanceStateService(savedInstanceState);
+        if (shoppingList == null)
+            finish();
+        else {
+            setValueOnView(shoppingList, adapter);
+            setOnClickListenerDate();
+            setOnClickListenerAddProduct(shoppingList.getId());
+            if (savedInstanceState != null)
+                savedInstanceStateService(savedInstanceState);
+        }
     }
 
     private void attributedWidget() {
