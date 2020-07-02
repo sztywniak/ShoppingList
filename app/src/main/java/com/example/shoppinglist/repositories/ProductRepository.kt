@@ -1,4 +1,4 @@
-package com.example.myapplication22
+package com.example.shoppinglist.repositories
 
 import android.app.Application
 import androidx.lifecycle.LiveData

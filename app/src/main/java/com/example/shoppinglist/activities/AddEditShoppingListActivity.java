@@ -3,11 +3,10 @@ package com.example.shoppinglist.activities;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -16,7 +15,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -25,52 +23,47 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.shoppinglist.R;
 import com.example.shoppinglist.adapters.ProductAdapter;
 import com.example.shoppinglist.models.Product;
+import com.example.shoppinglist.models.ShoppingList;
 import com.example.shoppinglist.viewModels.ProductViewModel;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import com.google.gson.Gson;
 
 public class AddEditShoppingListActivity extends AppCompatActivity {
-    public static final String ID = "ID";
-    public static final String SHOPPING_LIST_NAME = "SHOPPING_LIST_NAME";
-    public static final String DATE = "DATE";
+    public static final String SHOPPING_LIST = "SHOPPING_LIST";
     public static final String IS_SHOWING_DIALOG = "IS_SHOWING_DIALOG";
-    public static final int NEW_SHOPPING_LIST_ID = -2;
     public static final int ADD_PRODUCT_REQUEST = 1;
     public static final int EDIT_PRODUCT_REQUEST = 2;
 
-    private EditText editTextListName;
-    private TextView textViewDate;
-    private RecyclerView recyclerView;
-    private ProductViewModel productViewModel;
+    final String SHOPPING_LIST_NAME = "SHOPPING_LIST_NAME";
+    final String SHOPPING_DATE = "SHOPPING_DATE";
+
+
+    private ProductViewModel productViewModel; //TODO da się poprawić?
     private boolean isShowingDialog = false;
+    private EditText editTextShoppingListName;
+    private TextView textViewShoppingDate;
+    private RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_edit_shopping_list);
-        attributedWidget();
         if (getSupportActionBar() != null)
             getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_close);
-
+        attributedWidget();
         productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
         final ProductAdapter adapter = new ProductAdapter();
         recycleViewService(adapter);
-
+        ShoppingList shoppingList = getShoppingList();
+        setValueOnView(shoppingList, adapter);
         setOnClickListenerDate();
-
-        Intent intent = getIntent();
-        intentService(adapter, intent);
-        setOnClickListenerAddProduct(intent);
+        setOnClickListenerAddProduct(shoppingList.getId());
         if (savedInstanceState != null)
             savedInstanceStateService(savedInstanceState);
     }
 
     private void attributedWidget() {
-        editTextListName = findViewById(R.id.editText_nameList);
-        textViewDate = findViewById(R.id.textView_date);
+        editTextShoppingListName = findViewById(R.id.editText_nameList);
+        textViewShoppingDate = findViewById(R.id.textView_date);
         recyclerView = findViewById(R.id.recycleView_product);
     }
 
@@ -80,82 +73,31 @@ public class AddEditShoppingListActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
-    private void setOnClickListenerDate() {
-        textViewDate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showDateDialog();
-            }
-        });
+    private ShoppingList getShoppingList() {
+        Intent intent = getIntent();
+        String json = intent.getStringExtra(SHOPPING_LIST);
+        return new Gson().fromJson(json, ShoppingList.class);
     }
 
-    private void showDateDialog() {
-        int day = Integer.parseInt(textViewDate.getText().toString().substring(8, 10));
-        int month = Integer.parseInt(textViewDate.getText().toString().substring(5, 7)) - 1;
-        int year = Integer.parseInt(textViewDate.getText().toString().substring(0, 4));
-
-        DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                String date;
-                if (day < 10 && month + 1 < 10)
-                    date = year + "-0" + (month + 1) + "-0" + day;
-                else if (day < 10)
-                    date = year + "-" + (month + 1) + "-0" + day;
-                else if (month + 1 < 10)
-                    date = year + "-0" + (month + 1) + "-" + day;
-                else
-                    date = year + "-" + (month + 1) + "-" + day;
-                isShowingDialog = false;
-                textViewDate.setText(date.substring(0, 10));
-            }
-        };
-
-        DatePickerDialog dialog = new DatePickerDialog(
-                AddEditShoppingListActivity.this, dateSetListener, year, month, day);
-        dialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
-        dialog.show();
-        isShowingDialog = true;
-    }
-
-    private void intentService(final ProductAdapter adapter, Intent intent) {
-        if (intent.hasExtra(ID)) {
-            setTitle("Edit shopping list");
-            editTextListName.setText(intent.getStringExtra(SHOPPING_LIST_NAME));
-            textViewDate.setText(intent.getStringExtra(DATE).substring(0, 10));
-            int shoppingListId = intent.getIntExtra(ID, -1);
-            if (shoppingListId != -1)
-                setProductList(shoppingListId, adapter);
-        } else {
-            setTitle("Add shopping list");
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            textViewDate.setText(sdf.format(new Date()));
-            setProductList(NEW_SHOPPING_LIST_ID, adapter);
-        }
+    private void setValueOnView(@NonNull ShoppingList shoppingList, ProductAdapter adapter) {
+        editTextShoppingListName.setText(shoppingList.getName());
+        textViewShoppingDate.setText(shoppingList.getDate().substring(0, 10));
+        setProductList(shoppingList.getId(), adapter);
     }
 
     private void setProductList(int shoppingListId, final ProductAdapter adapter) {
-        productViewModel.getAllProduct(shoppingListId).observe(this, new Observer<List<Product>>() {
-            @Override
-            public void onChanged(List<Product> products) {
-                adapter.submitList(products);
-            }
-        });
+        productViewModel.getAllProduct(shoppingListId).observe(this, adapter::submitList);
         productItemOnClickListener(adapter);
         deleteProductItem(adapter);
     }
 
     public void productItemOnClickListener(ProductAdapter adapter) {
-        adapter.setOnItemClickListener(new ProductAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(Product product) {
-                Intent intent = new Intent(AddEditShoppingListActivity.this, AddEditProductActivity.class);
-                intent.putExtra(AddEditProductActivity.SHOPPING_LIST_ID, product.getShoppingListId());
-                intent.putExtra(AddEditProductActivity.ID, product.getId());
-                intent.putExtra(AddEditProductActivity.PRODUCT_NAME, product.getName());
-                intent.putExtra(AddEditProductActivity.PRODUCT_NUMBER, product.getNumber());
-                startActivityForResult(intent, EDIT_PRODUCT_REQUEST);
-            }
+        adapter.setOnItemClickListener(product -> {
+            Intent intent = new Intent(AddEditShoppingListActivity.this,
+                    AddEditProductActivity.class);
+            String json = new Gson().toJson(product);
+            intent.putExtra(AddEditProductActivity.PRODUCT, json);
+            startActivityForResult(intent, EDIT_PRODUCT_REQUEST);
         });
     }
 
@@ -178,27 +120,49 @@ public class AddEditShoppingListActivity extends AppCompatActivity {
         }).attachToRecyclerView(recyclerView);
     }
 
-    private void setOnClickListenerAddProduct(final Intent intent) {
-        ImageView imageViewAddProduct = findViewById(R.id.imageView_addProduct);
-        imageViewAddProduct.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                int shoppingListId;
-                if (intent.hasExtra(ID)) {
-                    shoppingListId = intent.getIntExtra(ID, -1);
-                    if (shoppingListId == -1) {
-                        Toast.makeText(AddEditShoppingListActivity.this,
-                                "Error", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                } else
-                    shoppingListId = NEW_SHOPPING_LIST_ID;
+    private void setOnClickListenerDate() {
+        textViewShoppingDate.setOnClickListener(view -> showDateDialog());
+    }
 
-                Intent newIntent = new Intent(AddEditShoppingListActivity.this, AddEditProductActivity.class);
-                newIntent.putExtra(AddEditProductActivity.SHOPPING_LIST_ID, shoppingListId);
-                startActivityForResult(newIntent, ADD_PRODUCT_REQUEST);
-            }
-        });
+    private void showDateDialog() {
+        String date = textViewShoppingDate.getText().toString();
+        int day = Integer.parseInt(date.substring(8, 10));
+        int month = Integer.parseInt(date.substring(5, 7)) - 1;
+        int year = Integer.parseInt(date.substring(0, 4));
+
+        DatePickerDialog.OnDateSetListener dateSetListener = (datePicker, year1, month1, day1) -> {
+            String selectedDate;
+            if (day1 < 10 && month1 + 1 < 10)
+                selectedDate = year1 + "-0" + (month1 + 1) + "-0" + day1;
+            else if (day1 < 10)
+                selectedDate = year1 + "-" + (month1 + 1) + "-0" + day1;
+            else if (month1 + 1 < 10)
+                selectedDate = year1 + "-0" + (month1 + 1) + "-" + day1;
+            else
+                selectedDate = year1 + "-" + (month1 + 1) + "-" + day1;
+            isShowingDialog = false;
+            textViewShoppingDate.setText(selectedDate.substring(0, 10));
+        };
+
+        DatePickerDialog dialog = new DatePickerDialog(
+                AddEditShoppingListActivity.this, dateSetListener, year, month, day);
+        dialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        dialog.show();
+        isShowingDialog = true;
+    }
+
+    private void setOnClickListenerAddProduct(int shoppingListId) {
+        ImageView imageViewAddProduct = findViewById(R.id.imageView_addProduct);
+        imageViewAddProduct.setOnClickListener(view -> transitionToAddProduct(shoppingListId));
+    }
+
+    private void transitionToAddProduct(int shoppingListId) {
+        Intent intent = new Intent(AddEditShoppingListActivity.this,
+                AddEditProductActivity.class);
+        Product product = new Product("", 0, shoppingListId);
+        String json = new Gson().toJson(product);
+        intent.putExtra(AddEditProductActivity.PRODUCT, json);
+        startActivityForResult(intent, ADD_PRODUCT_REQUEST);
     }
 
     @Override
@@ -206,54 +170,24 @@ public class AddEditShoppingListActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == ADD_PRODUCT_REQUEST && resultCode == RESULT_OK && data != null) {
-            String name = data.getStringExtra(AddEditProductActivity.PRODUCT_NAME);
-            int number = data.getIntExtra(AddEditProductActivity.PRODUCT_NUMBER, -1);
-            int shoppingListId = data.getIntExtra(AddEditProductActivity.SHOPPING_LIST_ID,
-                    NEW_SHOPPING_LIST_ID - 1);
-
-            if (name == null || name.trim().isEmpty() || number == -1 ||
-                    shoppingListId == NEW_SHOPPING_LIST_ID - 1) {
-                Toast.makeText(this, "Product can't added", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Product product = new Product(name, number, shoppingListId);
-            productViewModel.insertProduct(product);
-
+            productViewModel.insertProduct(getProduct(data));
             Toast.makeText(this, "Product saved", Toast.LENGTH_SHORT).show();
         } else if (requestCode == EDIT_PRODUCT_REQUEST && resultCode == RESULT_OK && data != null) {
-            int id = data.getIntExtra(AddEditProductActivity.ID, -1);
-
-            if (id == -1) {
-                Toast.makeText(this, "product can't updated", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            String name = data.getStringExtra(AddEditProductActivity.PRODUCT_NAME);
-            int number = data.getIntExtra(AddEditProductActivity.PRODUCT_NUMBER, -1);
-            int shoppingListId = data.getIntExtra(AddEditProductActivity.SHOPPING_LIST_ID,
-                    NEW_SHOPPING_LIST_ID - 1);
-
-            if (name == null || name.trim().isEmpty() || number == -1 ||
-                    shoppingListId == NEW_SHOPPING_LIST_ID - 1) {
-                Toast.makeText(this, "Product can't updated", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Product product = new Product(name, number, shoppingListId);
-            product.setId(id);
-            productViewModel.insertProduct(product);
-
+            productViewModel.updateProduct(getProduct(data));
             Toast.makeText(this, "Product updated", Toast.LENGTH_SHORT).show();
         }
     }
 
+    private Product getProduct(@NonNull Intent data) {
+        String json = data.getStringExtra(AddEditProductActivity.PRODUCT);
+        return new Gson().fromJson(json, Product.class);
+    }
+
     private void savedInstanceStateService(Bundle savedInstanceState) {
-        editTextListName.setText(savedInstanceState.getString(SHOPPING_LIST_NAME));
+        editTextShoppingListName.setText(savedInstanceState.getString(SHOPPING_LIST_NAME));
+        textViewShoppingDate.setText(savedInstanceState.getString(SHOPPING_DATE));
         if (savedInstanceState.getBoolean(IS_SHOWING_DIALOG))
             showDateDialog();
-        else
-            textViewDate.setText(savedInstanceState.getString(DATE).substring(0, 10));
     }
 
     @Override
@@ -265,44 +199,38 @@ public class AddEditShoppingListActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.save:
-                saveShoppingList();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.save) {
+            saveShoppingList();
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
 
     private void saveShoppingList() {
-        String name = editTextListName.getText().toString();
-        String date = textViewDate.getText().toString() + " 23:59:59:999";
-
+        String name = editTextShoppingListName.getText().toString();
         if (name.trim().isEmpty()) {
             Toast.makeText(this, "Please insert name list", Toast.LENGTH_LONG).show();
             return;
         }
-
-        setResult(RESULT_OK, getIntentData(name, date));
+        String date = textViewShoppingDate.getText().toString() + " 23:59:59:999";
+        setResult(RESULT_OK, getIntentData(new ShoppingList(name, date)));
         finish();
     }
 
-    private Intent getIntentData(String name, String date) {
+    private Intent getIntentData(ShoppingList shoppingList) {
+        Log.e("2 lista", "id " + shoppingList.getId() +" name "+ shoppingList.getName() + " date " + shoppingList.getDate());
+        shoppingList.setId(getShoppingList().getId());
+        String json = new Gson().toJson(shoppingList);
         Intent data = new Intent();
-        data.putExtra(SHOPPING_LIST_NAME, name);
-        data.putExtra(DATE, date);
-
-        int id = getIntent().getIntExtra(ID, -1);
-        if (id != -1)
-            data.putExtra(ID, id);
+        data.putExtra(SHOPPING_LIST, json);
         return data;
     }
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString(SHOPPING_LIST_NAME, editTextListName.getText().toString());
-        outState.putString(DATE, textViewDate.getText().toString());
+        outState.putString(SHOPPING_LIST_NAME, editTextShoppingListName.getText().toString());
+        outState.putString(SHOPPING_DATE, textViewShoppingDate.getText().toString());
         outState.putBoolean(IS_SHOWING_DIALOG, isShowingDialog);
     }
 }

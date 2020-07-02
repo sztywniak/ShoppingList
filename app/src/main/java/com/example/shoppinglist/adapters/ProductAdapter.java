@@ -62,13 +62,10 @@ public class ProductAdapter extends ListAdapter<Product, ProductAdapter.ProductH
             textViewName = itemView.findViewById(R.id.textView_name);
             textViewNumber = itemView.findViewById(R.id.textView_number);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    int position = getAdapterPosition();
-                    if (listener != null && position != RecyclerView.NO_POSITION)
-                        listener.onItemClick(getItem(position));
-                }
+            itemView.setOnClickListener(view -> {
+                int position = getAdapterPosition();
+                if (listener != null && position != RecyclerView.NO_POSITION)
+                    listener.onItemClick(getItem(position));
             });
         }
     }

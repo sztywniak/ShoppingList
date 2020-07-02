@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -12,24 +13,26 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.shoppinglist.R;
+import com.example.shoppinglist.models.Product;
+import com.google.gson.Gson;
 
 public class AddEditProductActivity extends AppCompatActivity {
-    public static final String ID = "ID";
-    public static final String SHOPPING_LIST_ID = "SHOPPING_LIST_ID";
-    public static final String PRODUCT_NAME = "PRODUCT_NAME";
-    public static final String PRODUCT_NUMBER = "PRODUCT_NUMBER";
+    public static final String PRODUCT = "PRODUCT";
 
-    private EditText editTextName, editTextNumber;
+    final String PRODUCT_NAME = "PRODUCT_NAME";
+    final String PRODUCT_NUMBER = "PRODUCT_NUMBER";
+
+    private EditText editTextName;
+    private EditText editTextNumber;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_product);
-        attributedWidget();
         if (getSupportActionBar() != null)
             getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_close);
-        Intent intent = getIntent();
-        intentService(intent);
+        attributedWidget();
+        setValueOnView(getProduct());
         if (savedInstanceState != null)
             savedInstanceStateService(savedInstanceState);
     }
@@ -39,13 +42,14 @@ public class AddEditProductActivity extends AppCompatActivity {
         editTextNumber = findViewById(R.id.editText_productNumber);
     }
 
-    private void intentService(Intent intent) {
-        if (intent.hasExtra(ID)) {
-            setTitle("Edit product");
-            editTextName.setText(intent.getStringExtra(PRODUCT_NAME));
-            editTextNumber.setText(String.valueOf(intent.getIntExtra(PRODUCT_NUMBER, -1)));
-        } else
-            setTitle("Add product");
+    private Product getProduct() {
+        String json = getIntent().getStringExtra(PRODUCT);
+        return new Gson().fromJson(json, Product.class);
+    }
+
+    private void setValueOnView(@NonNull Product product) {
+        editTextName.setText(product.getName());
+        editTextNumber.setText(String.valueOf(product.getNumber()));
     }
 
     private void savedInstanceStateService(Bundle savedInstanceState) {
@@ -74,28 +78,25 @@ public class AddEditProductActivity extends AppCompatActivity {
         String number = editTextNumber.getText().toString();
 
         if (name.trim().isEmpty() || name.trim().isEmpty()) {
-            Toast.makeText(this, "Please add name and number product", Toast.LENGTH_LONG).show();
+            Toast.makeText(this,
+                    "Please add name and number product", Toast.LENGTH_LONG).show();
+            return;
+        } else if (Integer.parseInt(number) == 0) {
+            Toast.makeText(this,
+                    "Number product can't be 0", Toast.LENGTH_LONG).show();
             return;
         }
 
-        int shoppingListId = getIntent().getIntExtra(SHOPPING_LIST_ID,
-                AddEditShoppingListActivity.NEW_SHOPPING_LIST_ID - 1);
-        if (shoppingListId != AddEditShoppingListActivity.NEW_SHOPPING_LIST_ID - 1)
-            setResult(RESULT_OK, getIntentData(name, Integer.parseInt(number), shoppingListId));
-        else
-            Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
+        int shoppingListId = getProduct().getShoppingListId();
+        Product product = new Product(name, Integer.parseInt(number), shoppingListId);
+        setResult(RESULT_OK, getIntentData(product));
         finish();
     }
 
-    private Intent getIntentData(String name, int number, int shoppingListId) {
+    private Intent getIntentData(Product product) {
+        String json = new Gson().toJson(product);
         Intent data = new Intent();
-        data.putExtra(PRODUCT_NAME, name);
-        data.putExtra(PRODUCT_NUMBER, number);
-        data.putExtra(SHOPPING_LIST_ID, shoppingListId);
-
-        int id = getIntent().getIntExtra(ID, -1);
-        if (id != -1)
-            data.putExtra(ID, id);
+        data.putExtra(PRODUCT, json);
         return data;
     }
 

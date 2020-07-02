@@ -2,9 +2,14 @@ package com.example.shoppinglist.models;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.ForeignKey;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "PRODUCT")
+import static androidx.room.ForeignKey.CASCADE;
+
+@Entity(tableName = "PRODUCT",
+        foreignKeys = @ForeignKey(entity = ShoppingList.class, parentColumns = "ID",
+                childColumns = "SHOPPING_LIST_ID", onDelete = CASCADE))
 public class Product {
 
     @PrimaryKey(autoGenerate = true)

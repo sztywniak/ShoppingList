@@ -3,8 +3,6 @@ package com.example.shoppinglist.activities;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,13 +16,14 @@ import android.widget.Toast;
 
 import com.example.shoppinglist.R;
 import com.example.shoppinglist.adapters.ShoppingListAdapter;
-import com.example.shoppinglist.models.Product;
 import com.example.shoppinglist.models.ShoppingList;
-import com.example.shoppinglist.viewModels.ProductViewModel;
 import com.example.shoppinglist.viewModels.ShoppingListViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.gson.Gson;
 
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class ShoppingListActivity extends AppCompatActivity {
     public static final String TYPE = "type";
@@ -40,6 +39,7 @@ public class ShoppingListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_list);
         shoppingListViewModel = new ViewModelProvider(this).get(ShoppingListViewModel.class);
+        //shoppingListViewModel.deleteEmptyShoppingList();
         recycleVieService();
     }
 
@@ -63,33 +63,35 @@ public class ShoppingListActivity extends AppCompatActivity {
                     serviceArchivedShoppingList(adapter);
                     break;
             }
-        else
+        else //TODO tu jest lipa
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
     }
 
     public void serviceCurrentShoppingList(final ShoppingListAdapter adapter, RecyclerView recyclerView) {
-        viewAddShoppingListButton();
+        addShoppingListButtonService();
         setTitle("Current shopping list");
-        shoppingListViewModel.getAllCurrentShoppingList().observe(this, new Observer<List<ShoppingList>>() {
-            @Override
-            public void onChanged(List<ShoppingList> shoppingLists) {
-                adapter.submitList(shoppingLists);
-            }
-        });
+        shoppingListViewModel.getAllCurrentShoppingList().observe(this, adapter::submitList);
         deleteItem(adapter, recyclerView);
         currentItemOnClickListener(adapter);
     }
 
-    public void viewAddShoppingListButton() {
+    public void addShoppingListButtonService() {
         FloatingActionButton buttonAddShoppingList = findViewById(R.id.button_add_shopping_list);
         buttonAddShoppingList.setVisibility(View.VISIBLE);
-        buttonAddShoppingList.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(ShoppingListActivity.this, AddEditShoppingListActivity.class);
-                startActivityForResult(intent, ADD_LIST_REQUEST);
-            }
+        buttonAddShoppingList.setOnClickListener(view -> insertNewShoppingList());
+    }
+
+    private void insertNewShoppingList() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        ShoppingList shoppingList = new ShoppingList("", sdf.format(new Date()));
+        shoppingListViewModel.getInsertionId().observe(this, aLong -> {
+            shoppingList.setId(aLong.intValue());
+            String json = new Gson().toJson(shoppingList);
+            Intent intent = new Intent(ShoppingListActivity.this, AddEditShoppingListActivity.class);
+            intent.putExtra(AddEditShoppingListActivity.SHOPPING_LIST, json);
+            startActivityForResult(intent, ADD_LIST_REQUEST);
         });
+        shoppingListViewModel.insertShoppingList(shoppingList);
     }
 
     public void deleteItem(final ShoppingListAdapter adapter, RecyclerView recyclerView) {
@@ -113,41 +115,26 @@ public class ShoppingListActivity extends AppCompatActivity {
     }
 
     public void currentItemOnClickListener(ShoppingListAdapter adapter) {
-        adapter.setOnItemClickListener(new ShoppingListAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(ShoppingList shoppingList) {
-                Intent intent = new Intent(ShoppingListActivity.this, AddEditShoppingListActivity.class);
-                intent.putExtra(AddEditShoppingListActivity.ID, shoppingList.getId());
-                intent.putExtra(AddEditShoppingListActivity.SHOPPING_LIST_NAME, shoppingList.getName());
-                intent.putExtra(AddEditShoppingListActivity.DATE, shoppingList.getDate());
-
-                startActivityForResult(intent, EDIT_LIST_REQUEST);
-            }
+        adapter.setOnItemClickListener(shoppingList -> {
+            Intent intent = new Intent(ShoppingListActivity.this, AddEditShoppingListActivity.class);
+            String json = new Gson().toJson(shoppingList);
+            intent.putExtra(AddEditShoppingListActivity.SHOPPING_LIST, json);
+            startActivityForResult(intent, EDIT_LIST_REQUEST);
         });
     }
 
     public void serviceArchivedShoppingList(final ShoppingListAdapter adapter) {
         setTitle("Archived shopping list");
-        shoppingListViewModel.getAllArchivedShoppingList().observe(this, new Observer<List<ShoppingList>>() {
-            @Override
-            public void onChanged(List<ShoppingList> shoppingLists) {
-                adapter.submitList(shoppingLists);
-            }
-        });
+        shoppingListViewModel.getAllArchivedShoppingList().observe(this, adapter::submitList);
         archivedItemOnClickListener(adapter);
     }
 
     public void archivedItemOnClickListener(ShoppingListAdapter adapter) {
-        adapter.setOnItemClickListener(new ShoppingListAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(ShoppingList shoppingList) {
-                Intent intent = new Intent(ShoppingListActivity.this, ViewArchivedShoppingListActivity.class);
-                intent.putExtra(ViewArchivedShoppingListActivity.LIST_ID, shoppingList.getId());
-                intent.putExtra(ViewArchivedShoppingListActivity.LIST_NAME, shoppingList.getName());
-                intent.putExtra(ViewArchivedShoppingListActivity.LIST_DATE, shoppingList.getDate());
-
-                startActivityForResult(intent, EDIT_LIST_REQUEST);
-            }
+        adapter.setOnItemClickListener(shoppingList -> {
+            Intent intent = new Intent(ShoppingListActivity.this, ViewArchivedShoppingListActivity.class);
+            String json = new Gson().toJson(shoppingList);
+            intent.putExtra(ViewArchivedShoppingListActivity.SHOPPING_LIST, json);
+            startActivity(intent);
         });
     }
 
@@ -156,43 +143,18 @@ public class ShoppingListActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == ADD_LIST_REQUEST && resultCode == RESULT_OK && data != null) {
-            String name = data.getStringExtra(AddEditShoppingListActivity.SHOPPING_LIST_NAME);
-            String date = data.getStringExtra(AddEditShoppingListActivity.DATE);
-
-            ShoppingList shoppingList = new ShoppingList(name, date);
-            long id = shoppingListViewModel.insertShoppingList(shoppingList);
-
-            updateProduct(id);
+            getDataAndUpdateShoppingList(data);
             Toast.makeText(this, "Shopping list saved", Toast.LENGTH_SHORT).show();
         } else if (requestCode == EDIT_LIST_REQUEST && resultCode == RESULT_OK && data != null) {
-            int id = data.getIntExtra(AddEditShoppingListActivity.ID, -1);
-
-            if (id == -1) {
-                Toast.makeText(this, "Shopping list can't updated", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            String name = data.getStringExtra(AddEditShoppingListActivity.SHOPPING_LIST_NAME);
-            String date = data.getStringExtra(AddEditShoppingListActivity.DATE);
-
-            ShoppingList shoppingList = new ShoppingList(name, date);
-            shoppingList.setId(id);
-            shoppingListViewModel.updateShoppingLis(shoppingList);
-
+            getDataAndUpdateShoppingList(data);
             Toast.makeText(this, "Shopping list updated", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void updateProduct(Long shoppingListId) {
-        ProductViewModel productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
-        LiveData<List<Product>> productList = productViewModel
-                .getAllProduct(AddEditShoppingListActivity.NEW_SHOPPING_LIST_ID);
-        if (productList.getValue() != null) {
-            Log.e("productList", productList.getValue().size() + "");
-            for (int i = 0; i < productList.getValue().size(); i++) {
-                productList.getValue().get(i).setShoppingListId(shoppingListId.intValue());
-                productViewModel.updateProduct(productList.getValue().get(i));
-            }
-        }
+    private void getDataAndUpdateShoppingList(@NonNull Intent data) {
+        String json = data.getStringExtra(AddEditShoppingListActivity.SHOPPING_LIST);
+        ShoppingList shoppingList = new Gson().fromJson(json, ShoppingList.class);
+        Log.e("lista", "id " + shoppingList.getId() +" name "+ shoppingList.getName() + " date " + shoppingList.getDate());
+        shoppingListViewModel.updateShoppingLis(shoppingList);
     }
 }

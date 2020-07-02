@@ -24,10 +24,13 @@ public interface ShoppingListDao {
     void deleteShoppingList(ShoppingList shoppingList);
 
     @Query("SELECT * FROM SHOPPING_LIST WHERE DATE >= (SELECT datetime('now', 'localtime'))" +
-            "ORDER BY DATE")
+            "AND NAME NOT LIKE '' ORDER BY DATE")
     LiveData<List<ShoppingList>> getAllCurrentShoppingList();
 
     @Query("SELECT * FROM SHOPPING_LIST WHERE DATE < (SELECT datetime('now', 'localtime'))" +
-            "ORDER BY DATE DESC")
+            "AND NAME NOT LIKE '' ORDER BY DATE DESC")
     LiveData<List<ShoppingList>> getAllArchivedShoppingList();
+
+    @Query("DELETE FROM SHOPPING_LIST WHERE NAME LIKE ''")
+    void deleteEmptyShoppingList();
 }

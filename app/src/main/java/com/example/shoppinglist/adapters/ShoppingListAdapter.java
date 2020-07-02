@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.shoppinglist.R;
 import com.example.shoppinglist.models.ShoppingList;
 
-
 public class ShoppingListAdapter extends ListAdapter<ShoppingList, ShoppingListAdapter.ShoppingListHolder> {
 
     private OnItemClickListener listener;
@@ -63,13 +62,10 @@ public class ShoppingListAdapter extends ListAdapter<ShoppingList, ShoppingListA
             textViewName = itemView.findViewById(R.id.textView_name);
             textViewDate = itemView.findViewById(R.id.textView_date);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    int position = getAdapterPosition();
-                    if (listener != null && position != RecyclerView.NO_POSITION)
-                        listener.onItemClick(getItem(position));
-                }
+            itemView.setOnClickListener(view -> {
+                int position = getAdapterPosition();
+                if (listener != null && position != RecyclerView.NO_POSITION)
+                    listener.onItemClick(getItem(position));
             });
         }
     }

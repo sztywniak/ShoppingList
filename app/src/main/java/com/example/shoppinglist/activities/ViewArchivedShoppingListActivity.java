@@ -2,7 +2,6 @@ package com.example.shoppinglist.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -13,15 +12,12 @@ import android.widget.TextView;
 
 import com.example.shoppinglist.R;
 import com.example.shoppinglist.adapters.ProductAdapter;
-import com.example.shoppinglist.models.Product;
+import com.example.shoppinglist.models.ShoppingList;
 import com.example.shoppinglist.viewModels.ProductViewModel;
-
-import java.util.List;
+import com.google.gson.Gson;
 
 public class ViewArchivedShoppingListActivity extends AppCompatActivity {
-    public static final String LIST_ID = "LIST_ID";
-    public static final String LIST_NAME = ".LIST_NAME";
-    public static final String LIST_DATE = "LIST_DATE";
+    public static final String SHOPPING_LIST = "SHOPPING_LIST";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,11 +25,10 @@ public class ViewArchivedShoppingListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_archived_shopping_list);
         if (getSupportActionBar() != null)
             getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_close);
-
         final ProductAdapter adapter = new ProductAdapter();
         recycleViewService(adapter);
-        Intent intent = getIntent();
-        intentService(intent, adapter);
+        ShoppingList shoppingList = getShoppingList();
+        setValueOnView(shoppingList, adapter);
     }
 
     private void recycleViewService(ProductAdapter adapter) {
@@ -43,24 +38,23 @@ public class ViewArchivedShoppingListActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
-    private void intentService(@NonNull Intent intent, ProductAdapter adapter) {
+    private ShoppingList getShoppingList() {
+        Intent intent = getIntent();
+        String json = intent.getStringExtra(SHOPPING_LIST);
+        return new Gson().fromJson(json, ShoppingList.class);
+    }
+
+    private void setValueOnView(@NonNull ShoppingList shoppingList, ProductAdapter adapter) {
         TextView textViewName = findViewById(R.id.textView_name);
         TextView textViewDate = findViewById(R.id.textView_date);
 
-        textViewName.setText(intent.getStringExtra(LIST_NAME));
-        textViewDate.setText(intent.getStringExtra(LIST_DATE).substring(0, 10));
-        int shoppingListId = intent.getIntExtra(LIST_ID, -1);
-        if (shoppingListId != -1)
-            setProductList(shoppingListId, adapter);
+        textViewName.setText(shoppingList.getName());
+        textViewDate.setText(shoppingList.getDate().substring(0, 10));
+        setProductList(shoppingList.getId(), adapter);
     }
 
     private void setProductList(int shoppingListId, final ProductAdapter adapter) {
         ProductViewModel productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
-        productViewModel.getAllProduct(shoppingListId).observe(this, new Observer<List<Product>>() {
-            @Override
-            public void onChanged(List<Product> products) {
-                adapter.submitList(products);
-            }
-        });
+        productViewModel.getAllProduct(shoppingListId).observe(this, adapter::submitList);
     }
 }
