@@ -23,11 +23,9 @@
             android:name=".activities.ShoppingListActivity"
             android:parentActivityName=".activities.MainActivity" />
         <activity
-            android:name=".activities.AddEditShoppingListActivity"
-            android:parentActivityName=".activities.ShoppingListActivity" />
+            android:name=".activities.AddEditShoppingListActivity" />
         <activity
-            android:name=".activities.AddEditProductActivity"
-            android:parentActivityName=".activities.AddEditShoppingListActivity" />
+            android:name=".activities.AddEditProductActivity" />
     </application>
 
 </manifest>

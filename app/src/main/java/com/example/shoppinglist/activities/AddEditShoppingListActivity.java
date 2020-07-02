@@ -54,15 +54,11 @@ public class AddEditShoppingListActivity extends AppCompatActivity {
         final ProductAdapter adapter = new ProductAdapter();
         recycleViewService(adapter);
         ShoppingList shoppingList = getShoppingList();
-        if (shoppingList == null)
-            finish();
-        else {
-            setValueOnView(shoppingList, adapter);
-            setOnClickListenerDate();
-            setOnClickListenerAddProduct(shoppingList.getId());
-            if (savedInstanceState != null)
-                savedInstanceStateService(savedInstanceState);
-        }
+        setValueOnView(shoppingList, adapter);
+        setOnClickListenerDate();
+        setOnClickListenerAddProduct(shoppingList.getId());
+        if (savedInstanceState != null)
+            savedInstanceStateService(savedInstanceState);
     }
 
     private void attributedWidget() {
