@@ -26,10 +26,6 @@ import com.example.shoppinglist.models.ShoppingList;
 import com.example.shoppinglist.viewModels.ProductViewModel;
 import com.google.gson.Gson;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-
 public class AddEditShoppingListActivity extends AppCompatActivity {
     public static final String SHOPPING_LIST = "SHOPPING_LIST";
     public static final String IS_SHOWING_DIALOG = "IS_SHOWING_DIALOG";
